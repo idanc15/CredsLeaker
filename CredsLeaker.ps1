@@ -18,6 +18,20 @@ $asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | ? { $_.
 [Windows.Security.Credentials.UI.CredentialPickerOptions,Windows.Security.Credentials.UI,ContentType=WindowsRuntime]
 #[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
+# Ignore trust issues https://stackoverflow.com/questions/11696944/powershell-v3-invoke-webrequest-https-error
+add-type @"
+    using System.Net;
+    using System.Security.Cryptography.X509Certificates;
+    public class TrustAllCertsPolicy : ICertificatePolicy {
+        public bool CheckValidationResult(
+            ServicePoint srvPoint, X509Certificate certificate,
+            WebRequest request, int certificateProblem) {
+            return true;
+        }
+    }
+"@
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
 $CurrentDomain_Name = $env:USERDOMAIN
 $ComputerName = $env:COMPUTERNAME
 
